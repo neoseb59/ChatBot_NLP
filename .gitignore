@@ -1,4 +1,3 @@
 *.pyc
-./data/analysis/
-./data/results/
-./src/__pycache__/
+*.txt
+*.json
