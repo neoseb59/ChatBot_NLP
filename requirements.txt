@@ -1,8 +1,10 @@
 
 beautifulsoup4==4.12.3
+fr-dep-news-trf @ https://github.com/explosion/spacy-models/releases/download/fr_dep_news_trf-3.7.2/fr_dep_news_trf-3.7.2-py3-none-any.whl#sha256=9977592dee6ec11b9e0d11489b1df1cfd292a78b14b0b630d28993510e21faf8
 fr-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.7.0/fr_core_news_sm-3.7.0-py3-none-any.whl#sha256=37e9f1f6a278a5138fabdabcc92cc559da917f9b24c76f0adf6758720d7eab10
 lxml==5.1.0
 nltk==3.8.1
 spacy==3.7.4
 spacy-legacy==3.0.12
 spacy-loggers==1.0.5
+scikit-learn==1.0.2
