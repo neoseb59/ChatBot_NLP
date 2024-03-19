@@ -2,8 +2,9 @@ import os
 import json
 import time
 from data_analyzer import DataAnalyzer
-import xml_parser
+from data_visualizer import DataVisualizer
 import xml_loader
+import xml_parser
 import tfidf_analyzer
 
 class DataPipeline:
@@ -12,7 +13,6 @@ class DataPipeline:
         self.parsing_output_path = output_path
         self.analysis_output_path = analysis_output_path
         self.tfidf_output_path = tfidf_output_path
-
 
     def load_and_parse_xml(self) -> list[dict[str, str]]:
         print("Loading XML files from", self.data_folder)
@@ -32,69 +32,35 @@ class DataPipeline:
         with open(self.parsing_output_path, 'w', encoding='utf-8') as output_file:
             json.dump(output_data, output_file, ensure_ascii=False, indent=4)
 
-    def get_named_entities(self, parsed_data: list[dict[str, str]]) -> dict[str, str]:
-        analyzer = DataAnalyzer(parsed_data)
-        return analyzer.analyze_data_into_named_entities()
+    def analyze_data(self, output_data: list[dict[str, str]]):
+        print("Analyzing data...")
+        analyzer = DataAnalyzer(output_data)
+        analysis_results = analyzer.analyze_data()
+        # Save analysis results for potential future use
+        with open(self.analysis_output_path, 'w', encoding='utf-8') as file:
+            json.dump(analysis_results, file, ensure_ascii=False, indent=4)
+        return analysis_results
 
-    def save_named_entities(self, named_entities: dict[str, str]):
-        with open(self.analysis_output_path, 'w', encoding='utf-8') as output_file:
-            for entity, label in named_entities.items():
-                output_file.write(f"{entity} : {label}\n")
-
-    def get_tfidf_keywords(self, parsed_data: list[dict[str, str]]) -> list[tuple[str, float]]:
-        analyzer = tfidf_analyzer.TFIDFAnalyzer(parsed_data)
-        return analyzer.get_top_keywords()
-
-    def save_tfidf_keywords(self, tfidf_keywords: list[tuple[str, float]]):
-        with open(self.tfidf_output_path, 'w', encoding='utf-8') as output_file:
-            for keyword, score in tfidf_keywords:
-                output_file.write(f"{keyword} : {score}\n")
+    def visualize_analysis_results(self, analysis_results):
+        print("Visualizing analysis results...")
+        visualizer = DataVisualizer(analysis_results)
+        visualizer.plot_named_entities_distribution()
+        visualizer.plot_top_lemmas(20)
+        visualizer.generate_wordcloud()
 
     def run_pipeline(self):
         start_time = time.time()
 
+        # Load and save parsed XML data
         print("Running data pipeline...")
-        load_start_time = time.time()
         output_data = self.load_and_parse_xml()
-        load_end_time = time.time()
-        load_elapsed_time = load_end_time - load_start_time
-        print("Loading XML files took {:.2f} seconds.".format(load_elapsed_time))
-
-        print("Saving parsed data...")
-        save_start_time = time.time()
         self.save_parsed_data(output_data)
-        save_end_time = time.time()
-        save_elapsed_time = save_end_time - save_start_time
-        print("Saving parsed data took {:.2f} seconds.".format(save_elapsed_time))
 
-        # print("Analyzing data...")
-        # analysis_start_time = time.time()
-        # named_entities = self.get_named_entities(output_data)
-        # analysis_end_time = time.time()
-        # analysis_elapsed_time = analysis_end_time - analysis_start_time
-        # print("Analyzing data took {:.2f} seconds.".format(analysis_elapsed_time))
-        
-        # print("Saving analysis data...")
-        # save_analysis_start_time = time.time()
-        # self.save_named_entities(named_entities)
-        # save_analysis_end_time = time.time()
-        # analysis_elapsed_time = save_analysis_end_time - save_analysis_start_time
-        # print("Saving analysis data took {:.2f} seconds.".format(analysis_elapsed_time))
+        # Analyze data for named entities and lemmas
+        analysis_results = self.analyze_data(output_data)
 
-        print("TF-IDF analysis...")
-        tfidf_start_time = time.time()
-        tfidf_keywords = self.get_tfidf_keywords(output_data)
-        print(tfidf_keywords)
-        tfidf_end_time = time.time()
-        tfidf_elapsed_time = tfidf_end_time - tfidf_start_time
-        print("TF-IDF analysis took {:.2f} seconds.".format(tfidf_elapsed_time))
-
-        # print("Saving TF-IDF analysis...")
-        # save_tfidf_start_time = time.time()
-        # self.save_tfidf_scores(tfidf_scores)
-        # save_tfidf_end_time = time.time()
-        # save_tfidf_elapsed_time = save_tfidf_end_time - save_tfidf_start_time
-        # print("Saving TF-IDF analysis took {:.2f} seconds.".format(save_tfidf_elapsed_time))
+        # Visualize analysis results
+        self.visualize_analysis_results(analysis_results)
 
         end_time = time.time()
         elapsed_time = end_time - start_time
@@ -103,7 +69,7 @@ class DataPipeline:
 if __name__ == '__main__':
     data_folder = '../data/part/'
     output_json_path = '../data/results/output.json'
-    analysis_output_path = '../data/analysis/named_entities.txt'
+    analysis_output_path = '../data/analysis/analysis_results.json'
     tfidf_output_path = '../data/analysis/tfidf_scores.txt'
 
     # Run the data pipeline
