@@ -10,20 +10,25 @@
 - TDIFD : <https://programminghistorian.org/fr/lecons/analyse-de-documents-avec-tfidf>
 - Bert : <https://medium.com/featurepreneur/question-generator-d21265c0648f>
 
+
+
 ## Pipeline
 
 ```mermaid
 graph TD;
-    A[Data Source] --> B[XML Loader];
-    B --> C[XML Parser];
-    C --> D[Term Extraction];
-    D --> E[Scope Analysis];
-    D --> F[TF-IDF Analysis];
-    E --> G[BERT Model];
+    A[Data Source] --XML File--> B[XML Loader];
+    B --Any Str --> K[XML File Parser]
+    K --Any Str--> C[XML Question/Answer Parser];
+    C --list[dict]--> I[Termhood Analyzer]
+    C --list[dict]--> E[Named entities Analyzer];
+    I --> F[TF-IDF Analyzer];
+    E --> G[Question Generator];
+    C --list[dict]--> G;
     F --> G;
-    G --> H[Output];
+    G --> H[Fine Tuning Mistral 7B];
+    H --> J[Fine Tuned Mistral 7B];
 
-    class A,B,C,D,F,E,G,H nodeStyle;
+    class A,B,C,D,F,E,G,H,I,J,K nodeStyle;
 
 ```
 

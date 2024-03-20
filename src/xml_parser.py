@@ -5,7 +5,7 @@ class XMLParser:
     def __init__(self, xml):
         self.xml = xml.encode('utf-8')
 
-    def parse(self):
+    def parse(self)-> list[dict]:
         soup = BeautifulSoup(self.xml, 'xml')
         chapters = soup.find_all('Chapitre')
         parsed_data = []

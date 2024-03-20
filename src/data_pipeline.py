@@ -1,7 +1,7 @@
 import os
 import json
 import time
-from data_analyzer import DataAnalyzer
+from named_entities_analyzer import NamedEntitiesAnalyzer
 from data_visualizer import DataVisualizer
 import xml_loader
 import xml_parser
@@ -34,7 +34,7 @@ class DataPipeline:
 
     def analyze_data(self, output_data: list[dict[str, str]]):
         print("Analyzing data...")
-        analyzer = DataAnalyzer(output_data)
+        analyzer = NamedEntitiesAnalyzer(output_data)
         analysis_results = analyzer.analyze_data()
         # Save analysis results for potential future use
         with open(self.analysis_output_path, 'w', encoding='utf-8') as file:

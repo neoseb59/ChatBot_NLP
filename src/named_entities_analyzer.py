@@ -2,7 +2,7 @@ import spacy
 import json
 from spacy.lang.fr.stop_words import STOP_WORDS
 
-class DataAnalyzer:
+class NamedEntitiesAnalyzer:
     def __init__(self, data, fast: bool = True):
         self.data = data
         if fast:
@@ -41,6 +41,6 @@ class DataAnalyzer:
 
 if __name__ == '__main__':
     data = json.load(open('../data/results/output.json', 'r', encoding='utf-8'))
-    analyzer = DataAnalyzer(data, fast=True)
+    analyzer = NamedEntitiesAnalyzer(data, fast=True)
     results = analyzer.analyze_data()
     print(results)
