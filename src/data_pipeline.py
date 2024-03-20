@@ -48,30 +48,43 @@ class DataPipeline:
         visualizer.plot_top_lemmas(20)
         visualizer.generate_wordcloud()
 
-    def run_pipeline(self):
+    def get_tfidf_scores(self, output_data: list[dict[str, str]]):
+        print("Computing TF-IDF scores...")
+        analyzer = tfidf_analyzer.TFIDFAnalyzer(output_data)
+        top_keywords = analyzer.get_top_keywords(10)
+        return top_keywords
+    
+    def save_tfidf_scores(self, top_keywords):
+        print("Saving TF-IDF scores...")
+        with open(self.tfidf_output_path, 'w', encoding='utf-8') as file:
+            for word, score in top_keywords:
+                file.write(f"{word}: {score}\n")
+
+    def run_pipeline_for_one_folder(self):
         start_time = time.time()
 
-        # Load and save parsed XML data
         print("Running data pipeline...")
         output_data = self.load_and_parse_xml()
         self.save_parsed_data(output_data)
 
-        # Analyze data for named entities and lemmas
         analysis_results = self.analyze_data(output_data)
 
-        # Visualize analysis results
         self.visualize_analysis_results(analysis_results)
+
+        top_keywords = self.get_tfidf_scores(output_data)
+
+        self.save_tfidf_scores(top_keywords)
 
         end_time = time.time()
         elapsed_time = end_time - start_time
         print("Pipeline completed in {:.2f} seconds.".format(elapsed_time))
 
 if __name__ == '__main__':
-    data_folder = '../data/part/'
+    data_folder = '../data/themes/Argent_Impôts_Consommation'
     output_json_path = '../data/results/output.json'
     analysis_output_path = '../data/analysis/analysis_results.json'
     tfidf_output_path = '../data/analysis/tfidf_scores.txt'
 
     # Run the data pipeline
     pipeline = DataPipeline(data_folder, output_json_path, analysis_output_path, tfidf_output_path)
-    pipeline.run_pipeline()
+    pipeline.run_pipeline_for_one_folder()

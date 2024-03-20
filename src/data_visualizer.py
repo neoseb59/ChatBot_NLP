@@ -8,6 +8,7 @@ class DataVisualizer:
 
     def plot_named_entities_distribution(self):
         entities = [ent for ent in self.analysis_results['entities'].values()]
+        entities = entities[:3]
         plt.figure(figsize=(10, 6))
         sns.countplot(y=entities, order = sns.countplot(y=entities).get_xticklabels())
         plt.title('Named Entities Distribution')
