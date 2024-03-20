@@ -12,7 +12,7 @@ class TFIDFAnalyzer:
         self._tfidf_scores = None
 
     def _create_corpus(self) -> list[str]:
-        return [pair['question'] + " " + pair['response'] for pair in self.data]
+        return [pair['response'] for pair in self.data]
 
     def _build_tfidf_matrix(self):
         self.tfidf_matrix = self.vectorizer.fit_transform(self.corpus)

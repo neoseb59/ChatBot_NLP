@@ -8,11 +8,17 @@ import xml_parser
 import tfidf_analyzer
 
 class DataPipeline:
-    def __init__(self, data_folder, output_path, analysis_output_path, tfidf_output_path):
-        self.data_folder = data_folder
-        self.parsing_output_path = output_path
-        self.analysis_output_path = analysis_output_path
-        self.tfidf_output_path = tfidf_output_path
+    def __init__(self, base_data_folder, base_output_folder):
+        self.base_data_folder = base_data_folder
+        self.base_output_folder = base_output_folder
+
+    def set_paths_for_theme(self, theme_name):
+        self.data_folder = os.path.join(self.base_data_folder, theme_name)
+        theme_output_folder = os.path.join(self.base_output_folder, theme_name)
+        os.makedirs(theme_output_folder, exist_ok=True)
+        self.parsing_output_path = os.path.join(theme_output_folder, 'output.json')
+        self.analysis_output_path = os.path.join(theme_output_folder, 'analysis_results.json')
+        self.tfidf_output_path = os.path.join(theme_output_folder, 'tfidf_scores.txt')
 
     def load_and_parse_xml(self) -> list[dict[str, str]]:
         print("Loading XML files from", self.data_folder)
@@ -32,22 +38,6 @@ class DataPipeline:
         with open(self.parsing_output_path, 'w', encoding='utf-8') as output_file:
             json.dump(output_data, output_file, ensure_ascii=False, indent=4)
 
-    def analyze_data(self, output_data: list[dict[str, str]]):
-        print("Analyzing data...")
-        analyzer = NamedEntitiesAnalyzer(output_data)
-        analysis_results = analyzer.analyze_data()
-        # Save analysis results for potential future use
-        with open(self.analysis_output_path, 'w', encoding='utf-8') as file:
-            json.dump(analysis_results, file, ensure_ascii=False, indent=4)
-        return analysis_results
-
-    def visualize_analysis_results(self, analysis_results):
-        print("Visualizing analysis results...")
-        visualizer = DataVisualizer(analysis_results)
-        visualizer.plot_named_entities_distribution()
-        visualizer.plot_top_lemmas(20)
-        visualizer.generate_wordcloud()
-
     def get_tfidf_scores(self, output_data: list[dict[str, str]]):
         print("Computing TF-IDF scores...")
         analyzer = tfidf_analyzer.TFIDFAnalyzer(output_data)
@@ -60,31 +50,30 @@ class DataPipeline:
             for word, score in top_keywords:
                 file.write(f"{word}: {score}\n")
 
-    def run_pipeline_for_one_folder(self):
+    def run_pipeline_for_theme(self, theme_name):
+        self.set_paths_for_theme(theme_name)
         start_time = time.time()
 
-        print("Running data pipeline...")
+        print("Running data pipeline for theme:", theme_name)
         output_data = self.load_and_parse_xml()
         self.save_parsed_data(output_data)
-
-        analysis_results = self.analyze_data(output_data)
-
-        self.visualize_analysis_results(analysis_results)
-
+        if not output_data:
+            print("No data found for theme", theme_name)
+            return
         top_keywords = self.get_tfidf_scores(output_data)
-
         self.save_tfidf_scores(top_keywords)
 
         end_time = time.time()
         elapsed_time = end_time - start_time
-        print("Pipeline completed in {:.2f} seconds.".format(elapsed_time))
+        print("Pipeline for theme '{}' completed in {:.2f} seconds.".format(theme_name, elapsed_time))
+
+    def run(self):
+        themes = [theme for theme in os.listdir(self.base_data_folder) if os.path.isdir(os.path.join(self.base_data_folder, theme))]
+        for theme in themes:
+            self.run_pipeline_for_theme(theme)
 
 if __name__ == '__main__':
-    data_folder = '../data/themes/Argent_Impôts_Consommation'
-    output_json_path = '../data/results/output.json'
-    analysis_output_path = '../data/analysis/analysis_results.json'
-    tfidf_output_path = '../data/analysis/tfidf_scores.txt'
-
-    # Run the data pipeline
-    pipeline = DataPipeline(data_folder, output_json_path, analysis_output_path, tfidf_output_path)
-    pipeline.run_pipeline_for_one_folder()
+    base_data_folder = '../data/themes'
+    base_output_folder = '../data/results'
+    pipeline = DataPipeline(base_data_folder, base_output_folder)
+    pipeline.run()
