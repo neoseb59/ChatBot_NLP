@@ -41,6 +41,7 @@ class NamedEntitiesAnalyzer:
 
 if __name__ == '__main__':
     data = json.load(open('../data/results/output.json', 'r', encoding='utf-8'))
-    analyzer = NamedEntitiesAnalyzer(data, fast=True)
+    analyzer = NamedEntitiesAnalyzer(data, fast=False)
     results = analyzer.analyze_data()
-    print(results)
+    with open('../data/results/analysis_results.json', 'w', encoding='utf-8') as file:
+        json.dump(results, file, ensure_ascii=False, indent=4)
