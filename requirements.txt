@@ -11,3 +11,5 @@ scikit-learn==1.0.2
 matplotlib==3.4.3
 seaborn==0.11.2
 wordcloud==1.8.1
+sentence-transformers==2.1.0
+transformers==4.12.2
