@@ -1,13 +1,18 @@
 # NLP project
 
-## Conception
+## Intro
+
+This repository is for our team's final project of IMT Atlantique's Natural Language Processing and Text Mining course taught by Yannis Haralambous and Gábor Bella.
+
+## Conception & Sources
 
 - dataset ->
     particulier : vosdroits-latest.zip
     pro: vosdroits-latest.zip
 
-- scrapping, intro, main paragraph, question and answer, … : <https://python.doctor/page-beautifulsoup-html-parser-python-library-xml>
-- TDIFD : <https://programminghistorian.org/fr/lecons/analyse-de-documents-avec-tfidf>
+- Parser : <https://python.doctor/page-beautifulsoup-html-parser-python-library-xml>
+- TDIFD : <https://programminghistorian.org/fr/lecons/analyse-de-documents-avec-tfidf>, <https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html>
+- NER : <https://spacy.io/api/entityrecognizer>
 - Bert : <https://medium.com/featurepreneur/question-generator-d21265c0648f>
 
 ## TO DO
