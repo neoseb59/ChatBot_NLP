@@ -45,7 +45,7 @@ class XMLFileParser:
 
 if __name__ == '__main__':
     absolute_file_dir = Path(__file__).resolve().parent
-    data_folder = absolute_file_dir / "../data/part/"
-    base_directory = "../data/themes/"
+    data_folder = absolute_file_dir.parent / "data/part/"
+    base_directory = absolute_file_dir.parent / "data/themes/"
     parser = XMLFileParser(None, data_folder, base_directory)
     parser.parse_files()

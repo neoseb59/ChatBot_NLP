@@ -42,8 +42,8 @@ class NamedEntitiesAnalyzer:
 
 if __name__ == '__main__':
     absolute_file_dir = Path(__file__).resolve().parent
-    data_location = absolute_file_dir / "../data/results/output.json"
-    results_location = absolute_file_dir / "../data/results/analysis_results.json"
+    data_location = absolute_file_dir.parent / "data/results/output.json"
+    results_location = absolute_file_dir.parent / "data/results/analysis_results.json"
     data = json.load(open(data_location, 'r', encoding='utf-8'))
 
     analyzer = NamedEntitiesAnalyzer(data, fast=False)

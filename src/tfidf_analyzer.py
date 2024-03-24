@@ -1,8 +1,11 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
+import nltk
+nltk.download('stopwords')
 from nltk.corpus import stopwords
 import json
 from scipy.sparse import csr_matrix
 from pathlib import Path
+from tqdm import tqdm
 
 class TFIDFAnalyzer:
     def __init__(self, data: list[dict[str, str]]):
@@ -26,7 +29,7 @@ class TFIDFAnalyzer:
         summed_matrix = self.tfidf_matrix.sum(axis=0)
         scores = csr_matrix(summed_matrix).toarray().flatten()
 
-        for index, score in enumerate(scores):
+        for index, score in tqdm(enumerate(scores), total=scores.size):
             feature = self.vectorizer.get_feature_names_out()[index]
             feature_scores[feature] = score
 
@@ -40,7 +43,7 @@ class TFIDFAnalyzer:
 
 if __name__ == '__main__':
     absolute_file_dir = Path(__file__).resolve().parent
-    data_location = absolute_file_dir / "../data/results/output.json"
+    data_location = absolute_file_dir.parent / "data/results/output.json"
     with open(data_location, 'r', encoding='utf-8') as file:
         data = json.load(file)
 

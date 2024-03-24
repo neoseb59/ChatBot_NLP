@@ -7,6 +7,7 @@ from data_visualizer import DataVisualizer
 import xml_loader
 import xml_parser
 import tfidf_analyzer
+from tqdm import tqdm
 
 class DataPipeline:
     def __init__(self, base_data_folder, base_output_folder):
@@ -24,7 +25,8 @@ class DataPipeline:
     def load_and_parse_xml(self) -> list[dict[str, str]]:
         print("Loading XML files from", self.data_folder)
         output_data = []
-        for filename in os.listdir(self.data_folder):
+        files = os.listdir(self.data_folder)
+        for filename in tqdm(files, total=len(files)):
             if filename.endswith(".xml"):
                 file_path = self.data_folder / filename
                 loader = xml_loader.XMLloader(file_path)
@@ -75,7 +77,7 @@ class DataPipeline:
 
 if __name__ == '__main__':
     absolute_file_dir = Path(__file__).resolve().parent
-    base_data_folder = absolute_file_dir / "../data/themes"
-    base_output_folder = absolute_file_dir / "../data/results"
+    base_data_folder = absolute_file_dir.parent / "data/themes"
+    base_output_folder = absolute_file_dir.parent / "data/results"
     pipeline = DataPipeline(base_data_folder, base_output_folder)
     pipeline.run()
