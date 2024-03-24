@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import xml_loader
 import re
 import os
+from pathlib import Path
 import shutil
 
 class XMLFileParser:
@@ -11,7 +12,7 @@ class XMLFileParser:
         self.xml = xml.encode('utf-8') if xml else None
         self.file_path = file_path
 
-    def parse_theme(self)->str or None:
+    def parse_theme(self) -> str | None:
         soup = BeautifulSoup(self.xml, 'xml')
         themes = soup.find_all('Theme')
         titles = [t.find('Titre') for t in themes]
@@ -22,20 +23,20 @@ class XMLFileParser:
         
         if theme:
             theme_directory = re.sub('[^0-9a-zA-Z]+', '_', theme)
-            full_path = os.path.join(self.base_directory, theme_directory)
+            full_path = self.base_directory / theme_directory
             
             if not os.path.exists(full_path):
                 os.makedirs(full_path)
             
-            shutil.move(self.file_path, os.path.join(full_path, os.path.basename(self.file_path)))
-            print(f"File moved to {os.path.join(full_path, os.path.basename(self.file_path))}")
+            shutil.move(self.file_path, full_path / self.file_path.name)
+            print(f"File moved to {full_path / self.file_path.name}")
         else:
             print("Theme could not be parsed. File not moved.")
     
     def parse_files(self):
         for filename in os.listdir(self.data_folder):
             if filename.endswith(".xml"):
-                file_path = os.path.join(self.data_folder, filename)
+                file_path = self.data_folder / filename
                 loader = xml_loader.XMLloader(file_path)
                 xml_data = loader.load()
                 self.file_path = file_path
@@ -43,5 +44,8 @@ class XMLFileParser:
                 self.order_file()
 
 if __name__ == '__main__':
-    parser = XMLFileParser(None, '../data/part/', '../data/themes/')
+    absolute_file_dir = Path(__file__).resolve().parent
+    data_folder = absolute_file_dir / "../data/part/"
+    base_directory = "../data/themes/"
+    parser = XMLFileParser(None, data_folder, base_directory)
     parser.parse_files()
