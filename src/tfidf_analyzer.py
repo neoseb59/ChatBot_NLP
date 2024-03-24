@@ -2,6 +2,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.corpus import stopwords
 import json
 from scipy.sparse import csr_matrix
+from pathlib import Path
 
 class TFIDFAnalyzer:
     def __init__(self, data: list[dict[str, str]]):
@@ -38,7 +39,9 @@ class TFIDFAnalyzer:
         return sorted_scores[:top_n]
 
 if __name__ == '__main__':
-    with open('../data/results/output.json', 'r', encoding='utf-8') as file:
+    absolute_file_dir = Path(__file__).resolve().parent
+    data_location = absolute_file_dir / "../data/results/output.json"
+    with open(data_location, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
     analyzer = TFIDFAnalyzer(data)

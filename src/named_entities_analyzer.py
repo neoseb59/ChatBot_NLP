@@ -1,6 +1,7 @@
 import spacy
 import json
 from spacy.lang.fr.stop_words import STOP_WORDS
+from pathlib import Path
 
 class NamedEntitiesAnalyzer:
     def __init__(self, data, fast: bool = True):
@@ -40,8 +41,12 @@ class NamedEntitiesAnalyzer:
         return analysis_results
 
 if __name__ == '__main__':
-    data = json.load(open('../data/results/output.json', 'r', encoding='utf-8'))
+    absolute_file_dir = Path(__file__).resolve().parent
+    data_location = absolute_file_dir / "../data/results/output.json"
+    results_location = absolute_file_dir / "../data/results/analysis_results.json"
+    data = json.load(open(data_location, 'r', encoding='utf-8'))
+
     analyzer = NamedEntitiesAnalyzer(data, fast=False)
     results = analyzer.analyze_data()
-    with open('../data/results/analysis_results.json', 'w', encoding='utf-8') as file:
+    with open(results_location, 'w', encoding='utf-8') as file:
         json.dump(results, file, ensure_ascii=False, indent=4)
