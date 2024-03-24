@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import json
 import time
 from named_entities_analyzer import NamedEntitiesAnalyzer
@@ -13,19 +14,19 @@ class DataPipeline:
         self.base_output_folder = base_output_folder
 
     def set_paths_for_theme(self, theme_name):
-        self.data_folder = os.path.join(self.base_data_folder, theme_name)
-        theme_output_folder = os.path.join(self.base_output_folder, theme_name)
+        self.data_folder = self.base_data_folder / theme_name
+        theme_output_folder = self.base_output_folder / theme_name
         os.makedirs(theme_output_folder, exist_ok=True)
-        self.parsing_output_path = os.path.join(theme_output_folder, 'output.json')
-        self.analysis_output_path = os.path.join(theme_output_folder, 'analysis_results.json')
-        self.tfidf_output_path = os.path.join(theme_output_folder, 'tfidf_scores.txt')
+        self.parsing_output_path = theme_output_folder / 'output.json'
+        self.analysis_output_path = theme_output_folder / 'analysis_results.json'
+        self.tfidf_output_path = theme_output_folder / 'tfidf_scores.txt'
 
     def load_and_parse_xml(self) -> list[dict[str, str]]:
         print("Loading XML files from", self.data_folder)
         output_data = []
         for filename in os.listdir(self.data_folder):
             if filename.endswith(".xml"):
-                file_path = os.path.join(self.data_folder, filename)
+                file_path = self.data_folder / filename
                 loader = xml_loader.XMLloader(file_path)
                 xml_data = loader.load()
 
@@ -68,12 +69,13 @@ class DataPipeline:
         print("Pipeline for theme '{}' completed in {:.2f} seconds.".format(theme_name, elapsed_time))
 
     def run(self):
-        themes = [theme for theme in os.listdir(self.base_data_folder) if os.path.isdir(os.path.join(self.base_data_folder, theme))]
+        themes = [theme for theme in os.listdir(self.base_data_folder) if os.path.isdir(self.base_data_folder / theme)]
         for theme in themes:
             self.run_pipeline_for_theme(theme)
 
 if __name__ == '__main__':
-    base_data_folder = '../data/themes'
-    base_output_folder = '../data/results'
+    absolute_file_dir = Path(__file__).resolve().parent
+    base_data_folder = absolute_file_dir / "../data/themes"
+    base_output_folder = absolute_file_dir / "../data/results"
     pipeline = DataPipeline(base_data_folder, base_output_folder)
     pipeline.run()
