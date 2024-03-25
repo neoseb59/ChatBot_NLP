@@ -43,7 +43,7 @@ class TFIDFAnalyzer:
 
 if __name__ == '__main__':
     absolute_file_dir = Path(__file__).resolve().parent
-    data_location = absolute_file_dir.parent / "data/results/output.json"
+    data_location = absolute_file_dir.parent / "data/results/Social_Santé/output.json"
     with open(data_location, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
