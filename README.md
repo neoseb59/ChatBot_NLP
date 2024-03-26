@@ -75,6 +75,36 @@ graph TD
 
 This comprehensive overview not only delineates the pipeline's stages but also emphasizes the methodical approach to refining and leveraging data for specialized applications, particularly in natural language processing and question generation tasks
 
+### Termhood State Machine
+
+In the [`termhood_analyzer.py`](src/termhood_analyzer.py) script, prior to calculating the C-value for termhood, words are labelled with POS tags in the corpus. To identify potential candidate terms, we use the patterns as suggested in the [fourth lab](https://moodle.imt-atlantique.fr/pluginfile.php/34041/mod_resource/content/5/TP_TLFT_Irma.pdf) (about **Corpus Preparation**): `NC ADJ+` or `NC P DET? NC`. This works well enough for French, but since we are using spaCy's terminology, it must be translated to: `NOUN ADJ+` or `NOUN ADP DET+ NOUN` (with `P`, now `ADP`, being prepositions).
+
+A **deterministic finite-state machine** (automaton) is used to parse through tags and identify such potential terms. Its logic is as follows:
+
+```mermaid
+stateDiagram-v2
+    [*] --> none
+    none --> none: !NOUN
+    none --> NOUN: NOUN
+
+    NOUN --> ADP: ADP
+    ADP --> DET: DET
+    DET --> NOUN2: NOUN
+    ADP --> NOUN2: NOUN
+    NOUN2 --> [*]: (any)
+
+    NOUN --> ADJ: ADJ
+    ADJ --> ADJ: ADJ
+    ADJ --> [*]: !ADJ
+
+```
+
+> In *any* of these states, the state machine's result/success value is **undetermined** (i.e. None). When transitioning into the *terminal node*, the automaton becomes **successful** (i.e. True). When receiving a token with *no applicable transitions* given the current state, the automaton becomes **failed** (i.e. False).
+
+In the implementation, when transitioning to *any* state *other* than "`none`", the token (word) used for that transition is appended to a **buffer** (to be returned later in case of a success).
+
+Whenever a new token causes the automaton to become either **successful** or **failed**, the state machine gets reset. A new one is created and is fed that last token as a first input. In the instance of a **success**, specifically, the value of the **buffer** is retrieved prior to starting over, and it is added as a new candidate (i.e. potential term).
+
 ## Project Requirements
 
 - Use the Rasa open-source framework (not mandatory but recommended).

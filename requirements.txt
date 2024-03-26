@@ -4,14 +4,14 @@ fr-dep-news-trf @ https://github.com/explosion/spacy-models/releases/download/fr
 fr-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.7.0/fr_core_news_sm-3.7.0-py3-none-any.whl#sha256=37e9f1f6a278a5138fabdabcc92cc559da917f9b24c76f0adf6758720d7eab10
 lxml==5.1.0
 nltk==3.8.1
+tqdm==4.66.2  # should be a requirement for spacy already but is also used in the project
 spacy==3.7.4
 spacy-legacy==3.0.12
 spacy-loggers==1.0.5
 scikit-learn==1.0.2
-matplotlib==3.4.3
 seaborn==0.11.2
 wordcloud==1.8.1
 sentence-transformers==2.1.0
 transformers==4.12.2
-tqdm==4.66.2  # should be a requirement for spacy already but is also used in the project
-pyconll==3.2.0
+numpy==1.23.5
+matplotlib==3.4.3
