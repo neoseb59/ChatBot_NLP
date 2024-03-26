@@ -19,6 +19,15 @@ class DataFormat:
                     all_parsed_data.extend(parsed_data)
         return all_parsed_data
 
+    def format_data_for_training(self):
+        all_parsed_data = self.get_all_parsed_data()
+        formatted_data = []
+        for data in all_parsed_data:
+            formatted_data.append("###Human:\n"+data['question']+ "\n\n###Assistant:\n"+ data['response'])
+        output_path = self.base_output_folder / 'formatted_data.json'
+        with open(output_path, 'w', encoding='utf-8') as file:
+            json.dump(formatted_data, file, ensure_ascii=False, indent=4)
+
     def aggregate_parsed_data(self):
         all_parsed_data = self.get_all_parsed_data()
         output_path = self.base_output_folder / 'all_parsed_data.json'
@@ -29,4 +38,4 @@ if __name__ == '__main__':
     base_input_folder = Path('../data/results')
     base_output_folder = Path('../data/results')
     formatter = DataFormat(base_input_folder, base_output_folder)
-    formatter.aggregate_parsed_data()
+    formatter.format_data_for_training()
