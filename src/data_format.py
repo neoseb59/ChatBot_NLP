@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+import csv 
 
 class DataFormat:
     def __init__(self, base_input_folder, base_output_folder):
@@ -28,6 +29,21 @@ class DataFormat:
         with open(output_path, 'w', encoding='utf-8') as file:
             json.dump(formatted_data, file, ensure_ascii=False, indent=4)
 
+    def format_data_to_csv(self):
+        ## Create a column named text and put every element of the list under it
+        all_parsed_data = self.get_all_parsed_data()
+        formatted_data = []
+        for data in all_parsed_data:
+            formatted_data.append("###Human:\\n"+data['question']+ "\\n\\n###Assistant:\\n"+ data['response'])
+        
+        output_path = self.base_output_folder / 'formatted_data.csv'
+        with open(output_path, 'w', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow(['text'])
+            for row in formatted_data:
+                writer.writerow([row])
+        
+
     def aggregate_parsed_data(self):
         all_parsed_data = self.get_all_parsed_data()
         output_path = self.base_output_folder / 'all_parsed_data.json'
@@ -38,4 +54,4 @@ if __name__ == '__main__':
     base_input_folder = Path('../data/results')
     base_output_folder = Path('../data/results')
     formatter = DataFormat(base_input_folder, base_output_folder)
-    formatter.format_data_for_training()
+    formatter.format_data_to_csv()
