@@ -79,7 +79,7 @@ This comprehensive overview not only delineates the pipeline's stages but also e
 
 In the [`termhood_analyzer.py`](src/termhood_analyzer.py) script, prior to calculating the C-value for termhood, words are labelled with POS tags in the corpus. To identify potential candidate terms, we use the patterns as suggested in the [fourth lab](https://moodle.imt-atlantique.fr/pluginfile.php/34041/mod_resource/content/5/TP_TLFT_Irma.pdf) (about **Corpus Preparation**): `NC ADJ+` or `NC P DET? NC`. This works well enough for French, but since we are using spaCy's terminology, it must be translated to: `NOUN ADJ+` or `NOUN ADP DET+ NOUN` (with `P`, now `ADP`, being prepositions).
 
-A **deterministic finite-state machine** (automaton) is used to parse through tags and identify such potential terms. Its logic is as follows:
+A **deterministic finite-state machine** (automaton) is used to parse through POS tags and identify such potential terms. Its logic is as follows:
 
 ```mermaid
 stateDiagram-v2

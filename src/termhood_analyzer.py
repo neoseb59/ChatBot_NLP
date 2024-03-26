@@ -1,28 +1,21 @@
 import json
-import spacy
 import re
 import numpy as np
 from enum import Enum
 from pathlib import Path
-from tqdm import tqdm
+from token_tagger import TokenTagger
+from token_tagger import TaggedWord
 
 class TermhoodAnalyzer:
-
-    curation_replacements_regex = [  # replacement operations to be performed when building the corpus itself
-        { 'regex': re.compile(r"’"), 'replacement': r"'" },
-        { 'regex': re.compile(r"(N|n)°"), 'replacement': r"\1uméro" },
-        { 'regex': re.compile(r"([0-9]+)h"), 'replacement': r"\1 h" },
-    ]
 
     bad_words_regex = [  # if any word in a term matches any of these regex, that term will be disregarded (abort recognition)
         re.compile(r"[€%«»/0-9]"),
         re.compile(r"^[;:\?!-]$"),
     ]
 
-    def __init__(self, data: list[dict[str, str]]):
-        self.data = data
-        self.corpus = self._create_corpus()
-        self.tagged_words = {}  # response (as string element from corpus) indexing: List[] of TaggedWord objects
+    def __init__(self, corpus: list[dict[str, str]], tagged_corpus: list[dict[str, list[TaggedWord]]]):
+        self.corpus = corpus
+        self.tagged_corpus = tagged_corpus
         self.candidate_lemma_mappings = {}
         self.candidate_lemmas = []
         self.candidate_lemmas_set = set()
@@ -30,41 +23,22 @@ class TermhoodAnalyzer:
         self.super_terms = {}  # candidate indexing: List[] of all candidates (terms) that contain that candidate
         self.c_values = {}  # candidate indexing: float (giving that term's C-value)
 
-        self.nlp = spacy.load('fr_core_news_sm')  # runs quite fast but will sometimes tag inaccurately
-        # self.nlp = spacy.load('fr_dep_news_trf')  # tags more accurately but runs slower
-
     def check_bad_word(self, word: str):
         for regex in self.bad_words_regex:
             if regex.match(word):
                 return True
         return False
 
-    def curate_string(self, string: str):
-        curated_string = string
-        for replacement_dict in self.curation_replacements_regex:
-            curated_string = replacement_dict['regex'].sub(replacement_dict['replacement'], curated_string)
-        return curated_string
-
     def full_text(self, lemma: str):
         return self.candidate_lemma_mappings[lemma].text
 
-    def _create_corpus(self) -> list[str]:
-        return [self.curate_string(pair['response']) for pair in self.data]
-
-    def tag_all_tokens(self):
-        print("Tagging words in corpus...")
-        for response in tqdm(self.corpus):
-            tagged_response_words = []
-            for token in self.nlp(response):
-                tagged_response_words.append(TaggedWord(token.text, token.lemma_.lower(), token.tag_))
-            self.tagged_words[response] = tagged_response_words
-
     def find_term_candidates(self):
-        detector = CandidateAutomaton()
         print("Searching for terms...")
-        for response in self.corpus:
+        detector = CandidateAutomaton()
+        for pair in self.tagged_corpus:
+            response_tagged_words = pair['response']
             detector.reset()
-            for tagged_word in self.tagged_words[response]:
+            for tagged_word in response_tagged_words:
                 if self.check_bad_word(tagged_word.text):
                     detector.reset()
                     continue
@@ -79,12 +53,14 @@ class TermhoodAnalyzer:
                     detector.transition(tagged_word)
 
     def calculate_frequencies(self):
+        print("Calculating frequencies...")
         for c in self.candidate_lemmas:
             if c not in self.term_frequencies.keys():
                 self.term_frequencies[c] = 0
             self.term_frequencies[c] += 1
 
     def work_out_super_terms(self):
+        print("Working out super terms...")
         for c in self.candidate_lemmas_set:
             if c not in self.super_terms.keys():
                 self.super_terms[c] = []
@@ -93,6 +69,7 @@ class TermhoodAnalyzer:
                     self.super_terms[c].append(super_term_candidate)
 
     def compute_c_values(self):
+        print("Computing C-values...")
         for a in self.candidate_lemmas_set:
             self.c_values[a] = np.log2(len(a))
             if a in self.super_terms.keys() and len(self.super_terms[a]) > 0:
@@ -100,12 +77,11 @@ class TermhoodAnalyzer:
             else:
                 self.c_values[a] *= self.term_frequencies[a]
 
-class TaggedWord:
-
-    def __init__(self, word: str, lemma: str, tag: str):
-        self.text = word
-        self.lemma = lemma
-        self.tag = tag
+    def run(self):
+        self.find_term_candidates()
+        self.calculate_frequencies()
+        self.work_out_super_terms()
+        self.compute_c_values()
 
 class TermCandidate:
 
@@ -176,14 +152,13 @@ if __name__ == '__main__':
     with open(data_location, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
-    tagger = TermhoodAnalyzer(data)
-    tagger.tag_all_tokens()
-    tagger.find_term_candidates()
-    tagger.calculate_frequencies()
-    tagger.work_out_super_terms()
-    tagger.compute_c_values()
+    tagger = TokenTagger(data, fast=True)
+    tagger.run()
+
+    analyzer = TermhoodAnalyzer(tagger.corpus, tagger.tagged_corpus)
+    analyzer.run()
 
     threshold = 0
-    for lemma, c_value in tagger.c_values.items():
+    for lemma, c_value in analyzer.c_values.items():
         if c_value > threshold:
-            print(tagger.full_text(lemma), c_value)
+            print(analyzer.full_text(lemma), c_value)
