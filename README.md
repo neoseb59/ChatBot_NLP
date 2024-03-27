@@ -4,6 +4,14 @@
 
 This repository is for our team's final project of IMT Atlantique's Natural Language Processing and Text Mining course taught by Yannis Haralambous and Gábor Bella.
 
+## Usage
+
+To parse XML files and generate outputs (parsed questions/answers under `data/results/<Topic>/output.json`), and then extract relevant terms for each answer (answer to list of terms mappings under `data/results/<Topic>/terms.json`), please run the [**`data_pipeline.py`**](src/data_pipeline.py) Python script.
+
+You can then try and load those mappings to generate questions to train the model. The questions generator Jupyter Notebook can be found [**here**](src/question_generator.ipynb).
+
+For a better understanding of the pipelines, please refer to the [appropriate section](#pipeline).
+
 ## Conception & Sources
 
 - dataset ->
@@ -29,6 +37,8 @@ This repository is for our team's final project of IMT Atlantique's Natural Lang
 
 ## Pipeline
 
+Our pipeline for data processing and then LLM training is as detailed below:
+
 ```mermaid
 
 graph TD
@@ -36,19 +46,19 @@ graph TD
     B -- "XML Files\nOrganized by Theme" --> C("XML Loader")
     
     subgraph "Data Pipeline by Theme"
-        C -- "Structured Data" --> D("XML Question/Answer Parser")
-        C -- "Structured Data" --> L("XML PreTreatment")
-        L -- "List[Dict]" --> K("Anaphora Resolution")
-        K -- "List[Dict]" --> F("Termhood Analyzer")
+    C -- "Structured Data" --> D("XML Question/Answer Parser")
+        D -- "List[Dict[str, str]]" --> T("Token Tagger")
+        T -- "List[Dict[str, str]]" --> K("Anaphora Resolution\n(skipped in practice)")
+        K -- "List[Dict[str, str]]" --> F("Termhood Analyzer")
         
         subgraph "Term Analysis"
-            F --> G("TF-IDF Analyzer")
+            F -- "Set[str] --> G("TF-IDF Analyzer")
         end
 
-        K -- "List[Dict]" --> E("Named Entities Analyzer")
-        E --> H("Question Generator")
+        K -- "List[Dict[str, str]]" --> E("Named Entities Analyzer")
+        E -- "NEs per Answer" --> H("Question Generator")
+        G -- "Terms per Answer" --> H
         D --> I
-        G --> H
     end
 
     H -- "Processed Questions\n(JSON)" --> I("Mistral Model Fine-Tuning")

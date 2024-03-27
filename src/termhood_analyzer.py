@@ -67,7 +67,7 @@ class TermhoodAnalyzer:
     def compute_c_values(self):
         for a in self.candidate_lemmas_set:
             full_a = self.get_full_term(a)
-            self.c_values[full_a] = np.log2(len(a))
+            self.c_values[full_a] = np.log2(len(a.split(' ')))
             if a in self.super_terms.keys() and len(self.super_terms[a]) > 0:
                 self.c_values[full_a] *= self.term_frequencies[a] - ((1/len(self.super_terms[a])) * sum([self.term_frequencies[b] for b in self.super_terms[a]]))
             else:

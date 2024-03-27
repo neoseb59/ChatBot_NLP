@@ -1,4 +1,4 @@
-class XMLloader:
+class XMLLoader:
     def __init__(self, data_path:str):
         self.data_path = data_path
 

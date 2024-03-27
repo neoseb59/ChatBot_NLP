@@ -53,6 +53,6 @@ if __name__ == '__main__':
     tagger = TokenTagger(data, fast=True)
     tagger.run()
 
-    # for pair in tagger.tagged_corpus:
-    #     for token in pair['question'] + pair['response']:
-    #         print(token.text, token.tag_)
+    for pair in tagger.tagged_corpus:
+        for token in pair['question'] + pair['response']:
+            print(token.text, token.tag_)

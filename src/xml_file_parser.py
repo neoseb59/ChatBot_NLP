@@ -37,7 +37,7 @@ class XMLFileParser:
         for filename in os.listdir(self.data_folder):
             if filename.endswith(".xml"):
                 file_path = self.data_folder / filename
-                loader = xml_loader.XMLloader(file_path)
+                loader = xml_loader.XMLLoader(file_path)
                 xml_data = loader.load()
                 self.file_path = file_path
                 self.xml = xml_data.encode('utf-8')

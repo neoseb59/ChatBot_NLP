@@ -7,7 +7,7 @@ from termhood_analyzer import TermhoodAnalyzer
 
 class TfidfAnalyzer:
 
-    def __init__(self, corpus: list[dict[str, str]], terms: list[str], document_frequencies: dict[str, int]):
+    def __init__(self, corpus: list[dict[str, str]], terms: set[str], document_frequencies: dict[str, int]):
         self.corpus = corpus
         self.terms = terms
         self.document_frequencies = document_frequencies
@@ -42,11 +42,11 @@ if __name__ == '__main__':
     th_analyzer = TermhoodAnalyzer(tagger.tagged_corpus)
     th_results = th_analyzer.run()
 
-    terms = []
+    terms = set()
     th_threshold = 0
     for term, c_value in th_results.items():
         if c_value > th_threshold:
-            terms.append(term)
+            terms.add(term)
 
     document_frequencies = {}
     for term, frequency in th_analyzer.term_frequencies.items():

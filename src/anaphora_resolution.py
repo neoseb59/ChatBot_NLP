@@ -14,9 +14,9 @@ class AnaphoraResolver:
             "tu": ["Undefined", "Sing"],
             "il": ["Masc", "Sing"],
             "elle": ["Fem", "Sing"],
-            "on": ["Undefined", "Sing"],
+            # "on": ["Undefined", "Sing"],
             "nous": ["Undefined", "Plur"],
-            "vous": ["Undefined", "Plur"],
+            # "vous": ["Undefined", "Plur"],
             "ils": ["Masc", "Plur"],
             "elles": ["Fem", "Plur"]
         }
@@ -24,7 +24,7 @@ class AnaphoraResolver:
     def match_rule(self, candidate: list[str], gender_rule, number_rule) -> bool:
         gender_filter = (candidate[0] == "Masc" and gender_rule == "Fem") or (candidate[0] == "Fem" and gender_rule == "Masc")
         number_filter = (candidate[1] == "Sing" and number_rule == "Plur") or (candidate[1] == "Plur" and number_rule == "Sing")
-        return not (gender_filter or number_filter)
+        return not gender_filter and not number_filter
 
     def matching_score(self, noun_index, pronoun_index):
         if noun_index < pronoun_index:
@@ -38,14 +38,14 @@ class AnaphoraResolver:
 
         # We get nouns and pronouns indexes
         for i in range(len(data)):
-            if data[i].tag_ == "NOUN" or data[i].tag_ == "PROPN":
+            if data[i].tag_ in ("NOUN", "PROPN"):
                 nouns_indexes.append(i)
             elif data[i].tag_ == "PRON":
                 pronouns_indexes.append(i)
 
         for p in pronouns_indexes:
-            pronoun = data[p].text.lower()
-            if pronoun in self.pronouns_rules.keys(): # supported pronoun
+            pronoun = data[p]
+            if pronoun.text.lower() in self.pronouns_rules.keys():  # supported pronoun
                 best_score = float("Inf")
                 index = -1
                 for n in nouns_indexes:
@@ -61,13 +61,13 @@ class AnaphoraResolver:
                             gender = pair[1]
                         elif pair[0] == "Number":
                             number = pair[1]
-                    if self.match_rule(self.pronouns_rules[pronoun], gender, number):
+                    if self.match_rule(self.pronouns_rules[pronoun.text.lower()], gender, number):
                         score = self.matching_score(n, p)
                         if score < best_score:
                             best_score = score
                             index = n
                 if index != -1: # we found a matching noun
-                    result[p] = noun
+                    result[p] = data[index]
         return result
 
     def run(self):
@@ -91,7 +91,8 @@ if __name__ == '__main__':
     resolver = AnaphoraResolver(tagger.tagged_corpus)
     results = resolver.run()
     for i in range(len(results)):
-        x = ' '.join([word.text for word in resolver.input[i]['response']])
-        y = ' '.join([word.text for word in results[i]['response']])
+        x = ' '.join([word.text for word in resolver.input[i]['question']])
+        y = ' '.join([word.text for word in results[i]['question']])
         if x != y:
-            print(x, "->", y)
+            print("Original :", x)
+            print("Changed  :", y)
