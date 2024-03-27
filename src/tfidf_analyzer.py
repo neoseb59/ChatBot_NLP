@@ -1,55 +1,61 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
-import nltk
-nltk.download('stopwords')
-from nltk.corpus import stopwords
 import json
-from scipy.sparse import csr_matrix
+import numpy as np
 from pathlib import Path
 from tqdm import tqdm
+from token_tagger import TokenTagger
+from termhood_analyzer import TermhoodAnalyzer
 
 class TfidfAnalyzer:
 
-    def __init__(self, data: list[dict[str, str]]):
-        self.data = data
-        self.vectorizer = TfidfVectorizer(stop_words=stopwords.words('french'), max_features=20000)
-        self.corpus = self._create_corpus()
-        self._build_tfidf_matrix()
-        self._tfidf_scores = None
+    def __init__(self, corpus: list[dict[str, str]], terms: list[str], document_frequencies: dict[str, int]):
+        self.corpus = corpus
+        self.terms = terms
+        self.document_frequencies = document_frequencies
 
-    def _create_corpus(self) -> list[str]:
-        return [pair['response'] for pair in self.data]
-
-    def _build_tfidf_matrix(self):
-        self.tfidf_matrix = self.vectorizer.fit_transform(self.corpus)
-
-    def get_tfidf_scores(self) -> dict[str, float]:
-        if self._tfidf_scores is not None:
-            return self._tfidf_scores
-
-        feature_scores = {}
-        summed_matrix = self.tfidf_matrix.sum(axis=0)
-        scores = csr_matrix(summed_matrix).toarray().flatten()
-
-        for index, score in tqdm(enumerate(scores), total=scores.size):
-            feature = self.vectorizer.get_feature_names_out()[index]
-            feature_scores[feature] = score
-
-        self._tfidf_scores = feature_scores
-        return feature_scores
-
-    def get_top_keywords(self, top_n=5) -> list[tuple[str, float]]:
-        tfidf_scores = self.get_tfidf_scores()
-        sorted_scores = sorted(tfidf_scores.items(), key=lambda x: x[1], reverse=True)
-        return sorted_scores[:top_n]
+    def run(self) -> dict[str, dict[str, float]]:
+        print("Computing TF-IDF scores...")
+        all_feature_scores = {}
+        for response in tqdm([pair['response'] for pair in self.corpus], total=len(self.corpus)):
+            feature_scores = {}
+            terms_in_response = 0
+            for any_term in self.terms:
+                terms_in_response += response.count(any_term)
+            for term in self.terms:
+                if terms_in_response > 0:
+                    term_frequency = response.count(term) / terms_in_response
+                    inverse_document_frequency = np.log(len(self.corpus) / self.document_frequencies[term])
+                    feature_scores[term] = term_frequency * inverse_document_frequency
+                else:
+                    feature_scores[term] = 0
+            all_feature_scores[response] = feature_scores
+        return all_feature_scores
 
 if __name__ == '__main__':
     absolute_file_dir = Path(__file__).resolve().parent
-    data_location = absolute_file_dir.parent / "data/results/Social_Santé/output.json"
+    data_location = absolute_file_dir.parent / "data/results/Argent_Impôts_Consommation/output.json"
     with open(data_location, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
-    analyzer = TfidfAnalyzer(data)
-    top_keywords = analyzer.get_top_keywords(10)
-    print("Top TF-IDF Keywords:")
-    for word, score in top_keywords:
-        print(f"{word}: {score}")
+    tagger = TokenTagger(data, fast=True)
+    tagger.run()
+
+    th_analyzer = TermhoodAnalyzer(tagger.tagged_corpus)
+    th_results = th_analyzer.run()
+
+    terms = []
+    th_threshold = 0
+    for term, c_value in th_results.items():
+        if c_value > th_threshold:
+            terms.append(term)
+
+    document_frequencies = {}
+    for term, frequency in th_analyzer.term_frequencies.items():
+        document_frequencies[th_analyzer.get_full_term(term)] = frequency
+
+    analyzer = TfidfAnalyzer(tagger.corpus, terms, document_frequencies)
+    result = analyzer.run()
+    threshold = 0
+    for response, scores in result.items():
+        for term, tfidf in scores.items():
+            if tfidf > threshold:
+                print(term, tfidf)

@@ -28,7 +28,7 @@ class TermhoodAnalyzer:
                 return True
         return False
 
-    def _get_full_term(self, lemma: str) -> str:
+    def get_full_term(self, lemma: str) -> str:
         return self.term_lemma_mappings[lemma].text
 
     def find_term_candidates(self):
@@ -66,7 +66,7 @@ class TermhoodAnalyzer:
 
     def compute_c_values(self):
         for a in self.candidate_lemmas_set:
-            full_a = self._get_full_term(a)
+            full_a = self.get_full_term(a)
             self.c_values[full_a] = np.log2(len(a))
             if a in self.super_terms.keys() and len(self.super_terms[a]) > 0:
                 self.c_values[full_a] *= self.term_frequencies[a] - ((1/len(self.super_terms[a])) * sum([self.term_frequencies[b] for b in self.super_terms[a]]))
