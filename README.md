@@ -106,6 +106,8 @@ Whenever a new token causes the automaton to become either **successful** or **f
 
 ## Final Trained Model
 
+Here is the code we used to fine tune our model on [Google Colab](https://colab.research.google.com/drive/1oV5wBvlWburCDaapuBIqgCFfk6x7g_xw?usp=sharing).
+
 To test out the model we fine tuned, check out [this Google Colab file](https://colab.research.google.com/drive/1k7CeuOamS70afdFUayrSA-hA10eAmLrP?usp=sharing).
 
 ## Project Requirements
