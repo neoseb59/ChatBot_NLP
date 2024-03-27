@@ -8,8 +8,6 @@ This repository is for our team's final project of IMT Atlantique's Natural Lang
 
 - dataset ->
     particulier : vosdroits-latest.zip
-    pro: vosdroits-latest.zip
-
 - Parser : <https://python.doctor/page-beautifulsoup-html-parser-python-library-xml>
 - TDIFD : <https://programminghistorian.org/fr/lecons/analyse-de-documents-avec-tfidf>, <https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html>
 - NER : <https://spacy.io/api/entityrecognizer>
@@ -21,25 +19,26 @@ This repository is for our team's final project of IMT Atlantique's Natural Lang
 - [ ] Data Pipeline
   - [x] XML Loader
   - [x] XML Q&A Parser
-  - [ ] Disambiguation Process
+  - [x] Anaphoria Resolution
   - [x] Named Entities Analyzer
-  - [ ] Termhood Analyzer
+  - [x] Termhood Analyzer
   - [x] TFIDF Analyzer
-- [ ] Question Generator
+- [x] Question Generator
 - [ ] Fine Tuning Mistral Model
 - [ ] Fine Tuned Mistral Model
 
 ## Pipeline
 
 ```mermaid
-graph TD
 
+graph TD
     A("Data Source\n(French Government Website)") -- "XML Files" --> B("XML File Parser")
     B -- "XML Files\nOrganized by Theme" --> C("XML Loader")
     
     subgraph "Data Pipeline by Theme"
         C -- "Structured Data" --> D("XML Question/Answer Parser")
-        D -- "List[Dict]" --> K("Disambiguation Process")
+        C -- "Structured Data" --> L("XML PreTreatment")
+        L -- "List[Dict]" --> K("Anaphora Resolution")
         K -- "List[Dict]" --> F("Termhood Analyzer")
         
         subgraph "Term Analysis"
@@ -48,7 +47,7 @@ graph TD
 
         K -- "List[Dict]" --> E("Named Entities Analyzer")
         E --> H("Question Generator")
-        K --> H
+        D --> I
         G --> H
     end
 
@@ -65,7 +64,7 @@ graph TD
 2. XML File Parser: Organizes XML files into distinct folders based on thematic categorization, streamlining subsequent analytical processes.
 3. XML Loader: Efficiently loads XML data from files within theme-specific folders, preparing the data for advanced parsing and analysis.
 4. XML Question/Answer Parser: Parses structured data from the XML files, focusing on extracting valuable question-and-answer pairs for further analysis.
-5. Disambiguation Process: Disambiguates the question/answer json.
+5. Anaphora Resolution: Disambiguates the question/answer json.
 6. Termhood Analyzer: Identifies and extracts significant terms from the parsed data, employing criteria to determine their relevance and importance within the context.
 7. Named Entities Analyzer: Focuses on extracting named entities from the data, crucial for understanding the specifics of the content and enhancing question generation.
 8. TF-IDF Analyzer: Within the term analysis subgraph, this component applies Term Frequency-Inverse Document Frequency analysis to evaluate and rank the importance of terms.
