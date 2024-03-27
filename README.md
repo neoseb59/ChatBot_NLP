@@ -104,6 +104,10 @@ In the implementation, when transitioning to *any* state *other* than "`none`", 
 
 Whenever a new token causes the automaton to become either **successful** or **failed**, the state machine gets reset. A new one is created and is fed that last token as a first input. In the instance of a **success**, specifically, the value of the **buffer** is retrieved prior to starting over, and it is added as a new candidate (i.e. potential term).
 
+## Final Trained Model
+
+To test out the model we fine tuned, check out [this Google Colab file](https://colab.research.google.com/drive/1k7CeuOamS70afdFUayrSA-hA10eAmLrP?usp=sharing).
+
 ## Project Requirements
 
 - Use the Rasa open-source framework (not mandatory but recommended).
