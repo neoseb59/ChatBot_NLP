@@ -1,27 +1,21 @@
-import spacy
 import json
 from spacy.lang.fr.stop_words import STOP_WORDS
 from pathlib import Path
+from spacy.tokens import Doc
+from token_tagger import TokenTagger
 
 class NamedEntitiesAnalyzer:
-    def __init__(self, data, fast: bool = True):
-        self.data = data
-        if fast:
-            self.nlp = spacy.load('fr_core_news_sm', disable=["parser"])
-        else:
-            self.nlp = spacy.load('fr_dep_news_trf', disable=["parser"])
+
+    def __init__(self, docs: dict[str, list[Doc]]):
+        self.docs = docs
         self.stop_words = STOP_WORDS
 
-    def load_text(self) -> list[str]:
-        all_text = []
-        for item in self.data:
-            all_text.append(item['question'] + " " + item['response'])
-        return all_text
-
-    def compute_named_entities_and_lemmas(self, all_text: list[str]) -> dict:
+    def run(self):
+        print("Computing named entities and lemmas...")
         named_entities = {}
         lemmas_freq = {}
-        for doc in self.nlp.pipe(all_text, batch_size=1000, n_process=-1):
+        all_docs = self.docs['question'] + self.docs['response']
+        for doc in all_docs:
             for ent in doc.ents:
                 if ent.label_ not in named_entities:
                     named_entities[ent.text] = ent.label_
@@ -33,20 +27,19 @@ class NamedEntitiesAnalyzer:
                     lemmas['pos'] = token.pos_
                     lemmas_freq[token.lemma_.lower()] = lemmas
 
-        return {'entities': named_entities, 'lemmas': lemmas_freq}
-
-    def analyze_data(self):
-        all_text = self.load_text()
-        analysis_results = self.compute_named_entities_and_lemmas(all_text)
-        return analysis_results
+        return { 'entities': named_entities, 'lemmas': lemmas_freq }
 
 if __name__ == '__main__':
     absolute_file_dir = Path(__file__).resolve().parent
-    data_location = absolute_file_dir.parent / "data/results/output.json"
-    results_location = absolute_file_dir.parent / "data/results/analysis_results.json"
-    data = json.load(open(data_location, 'r', encoding='utf-8'))
+    data_location = absolute_file_dir.parent / "data/results/Argent_Impôts_Consommation/output.json"
+    output_location = absolute_file_dir.parent / "data/results/Argent_Impôts_Consommation/named_entities_output.json"
+    with open(data_location, 'r', encoding='utf-8') as file:
+        data = json.load(file)
 
-    analyzer = NamedEntitiesAnalyzer(data, fast=False)
-    results = analyzer.analyze_data()
-    with open(results_location, 'w', encoding='utf-8') as file:
-        json.dump(results, file, ensure_ascii=False, indent=4)
+    tagger = TokenTagger(data, fast=True)
+    tagger.run()
+
+    analyzer = NamedEntitiesAnalyzer(tagger.docs)
+    results = analyzer.run()
+    # with open(results_location, 'w', encoding='utf-8') as file:
+    #     json.dump(results, file, ensure_ascii=False, indent=4)

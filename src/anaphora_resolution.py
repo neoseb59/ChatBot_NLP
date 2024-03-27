@@ -1,11 +1,11 @@
-from termhood_analyzer import TaggedWord
 from pathlib import Path
 import json
+from spacy.tokens import Token
 from token_tagger import TokenTagger
 
 class AnaphoraResolver:
 
-    def __init__(self, tagged_corpus : list[dict[str,list[TaggedWord]]]):
+    def __init__(self, tagged_corpus: list[dict[str,list[Token]]]):
         self.input = tagged_corpus
         self.output = []
 
@@ -31,16 +31,16 @@ class AnaphoraResolver:
             return pronoun_index - noun_index
         return float("Inf")
 
-    def resolve_anaphora(self, data : list[TaggedWord]) -> list[TaggedWord] :
+    def resolve_anaphoras(self, data: list[Token]) -> list[Token]:
         result = data.copy()
         nouns_indexes = []
         pronouns_indexes = []
 
         # We get nouns and pronouns indexes
         for i in range(len(data)):
-            if data[i].tag == "NOUN" or data[i].tag == "PROPN":
+            if data[i].tag_ == "NOUN" or data[i].tag_ == "PROPN":
                 nouns_indexes.append(i)
-            elif data[i].tag == "PRON":
+            elif data[i].tag_ == "PRON":
                 pronouns_indexes.append(i)
 
         for p in pronouns_indexes:
@@ -50,7 +50,18 @@ class AnaphoraResolver:
                 index = -1
                 for n in nouns_indexes:
                     noun = data[n]
-                    if self.match_rule(self.pronouns_rules[pronoun], noun.gender, noun.number):
+                    morph = str(noun.morph)
+                    gender = "Undefined"
+                    number = "Undefined"
+                    for category in morph.split('|'):
+                        pair = category.split('=')
+                        if len(pair) != 2:
+                            continue
+                        if pair[0] == "Gender":
+                            gender = pair[1]
+                        elif pair[0] == "Number":
+                            number = pair[1]
+                    if self.match_rule(self.pronouns_rules[pronoun], gender, number):
                         score = self.matching_score(n, p)
                         if score < best_score:
                             best_score = score
@@ -59,14 +70,14 @@ class AnaphoraResolver:
                     result[p] = noun
         return result
 
-    def anaphora_resolution(self) :
-
+    def run(self):
+        print("Resolving anaphoras in corpus...")
         for q_and_a in self.input:
-            question = self.resolve_anaphora(q_and_a["question"])
-            response = self.resolve_anaphora(q_and_a["response"])
-            output_q_and_a = {"question":question, "response":response}
+            question = self.resolve_anaphoras(q_and_a['question'])
+            response = self.resolve_anaphoras(q_and_a['response'])
+            output_q_and_a = { 'question': question, 'response': response }
             self.output.append(output_q_and_a)
-
+        return self.output
 
 if __name__ == '__main__':
     absolute_file_dir = Path(__file__).resolve().parent
@@ -78,11 +89,9 @@ if __name__ == '__main__':
     tagger.run()
 
     resolver = AnaphoraResolver(tagger.tagged_corpus)
-    resolver.anaphora_resolution()
-    for i in range(len(resolver.output)):
-        x = ' '.join([word.text for word in resolver.input[i]["response"]])
-        y = ' '.join([word.text for word in resolver.output[i]["response"]])
+    results = resolver.run()
+    for i in range(len(results)):
+        x = ' '.join([word.text for word in resolver.input[i]['response']])
+        y = ' '.join([word.text for word in results[i]['response']])
         if x != y:
-            print(x)
-            print(y)
-    
+            print(x, "->", y)

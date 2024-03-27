@@ -7,7 +7,8 @@ from scipy.sparse import csr_matrix
 from pathlib import Path
 from tqdm import tqdm
 
-class TFIDFAnalyzer:
+class TfidfAnalyzer:
+
     def __init__(self, data: list[dict[str, str]]):
         self.data = data
         self.vectorizer = TfidfVectorizer(stop_words=stopwords.words('french'), max_features=20000)
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     with open(data_location, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
-    analyzer = TFIDFAnalyzer(data)
+    analyzer = TfidfAnalyzer(data)
     top_keywords = analyzer.get_top_keywords(10)
     print("Top TF-IDF Keywords:")
     for word, score in top_keywords:

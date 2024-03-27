@@ -43,7 +43,7 @@ class DataPipeline:
 
     def get_tfidf_scores(self, output_data: list[dict[str, str]]):
         print("Computing TF-IDF scores...")
-        analyzer = tfidf_analyzer.TFIDFAnalyzer(output_data)
+        analyzer = tfidf_analyzer.TfidfAnalyzer(output_data)
         top_keywords = analyzer.get_top_keywords(10)
         return top_keywords
     
