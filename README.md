@@ -54,7 +54,6 @@ graph TD
     I --> J("Fine-Tuned Mistral Model\n(For Specific Applications)")
 
     class A,B,C,D,E,F,G,H,I,J nodeStyle;
-
 ```
 
 ### Data Pipeline Description
