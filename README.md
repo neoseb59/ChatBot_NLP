@@ -30,14 +30,15 @@ This repository is for our team's final project of IMT Atlantique's Natural Lang
 ## Pipeline
 
 ```mermaid
-graph TD
 
+graph TD
     A("Data Source\n(French Government Website)") -- "XML Files" --> B("XML File Parser")
     B -- "XML Files\nOrganized by Theme" --> C("XML Loader")
     
     subgraph "Data Pipeline by Theme"
         C -- "Structured Data" --> D("XML Question/Answer Parser")
-        D -- "List[Dict]" --> K("Anaphora Resolution")
+        C -- "Structured Data" --> L("XML PreTreatment")
+        L -- "List[Dict]" --> K("Anaphora Resolution")
         K -- "List[Dict]" --> F("Termhood Analyzer")
         
         subgraph "Term Analysis"
@@ -46,7 +47,7 @@ graph TD
 
         K -- "List[Dict]" --> E("Named Entities Analyzer")
         E --> H("Question Generator")
-        K --> H
+        D --> I
         G --> H
     end
 
@@ -54,6 +55,7 @@ graph TD
     I --> J("Fine-Tuned Mistral Model\n(For Specific Applications)")
 
     class A,B,C,D,E,F,G,H,I,J nodeStyle;
+
 ```
 
 ### Data Pipeline Description
