@@ -4,13 +4,47 @@
 
 This repository is for our team's final project of IMT Atlantique's Natural Language Processing and Text Mining course taught by Yannis Haralambous and Gábor Bella.
 
-## Usage
+## Setup and Usage
 
-To parse XML files and generate outputs (parsed questions/answers under `data/results/<Topic>/output.json`), and then extract relevant terms for each answer (answer to list of terms mappings under `data/results/<Topic>/terms.json`), please run the [**`data_pipeline.py`**](src/data_pipeline.py) Python script.
+> You will need to install all the dependencies detailed in `requirements.txt` using either `pip` or `conda`. If running `pip install -r requirements.txt` does not work, run `pip install` manually with each library in the list (omiting the version may help you avoid some issues for some reason). The `--user` option may be added if elevated privileges are required (typically when access rights are denied when pip attempts to install the wheels after downloading them).
+>
+> **Regarding the two `fr` models** (as listed near the start of the requirements file), they are submodels for spaCy--not standalone libraries. The correct command to download them individually (after spaCy) is: `python -m spacy download <model_name>` (with `<model_name>` being the name of the model (before the `@` character), with hyphens `-` replaced with underscores `_`--so for example, `fr-core-news-sm` would become `fr_core_news_sm`). Depending on the system/OS you are running, you may need to use `python3` and `pip3` instead of `python` and `pip`.
 
-You can then try and load those mappings to generate questions to train the model. The questions generator Jupyter Notebook can be found [**here**](src/question_generator.ipynb).
+**Data Pipeline:** To parse XML files and generate outputs (parsed questions/answers under `data/results/<Topic>/output.json`), and then extract relevant terms for each answer (answer to list of terms mappings under `data/results/<Topic>/terms.json`), please run the [**`data_pipeline.py`**](src/data_pipeline.py) Python script. As mentioned, run either `python` or `python3` (depending on your particular case), followed by `src/data_pipeline.py` to achieve this and run the data generating pipeline. In summary, XML files from `data/themes` will be parsed, and the associated outputs will be placed under `data/results`. This may take a while, but there are `tqdm` progress bars along with console logging to keep track of progress.
 
-For a better understanding of the pipelines, please refer to the [appropriate section](#pipeline).
+> For a better understanding of the pipelines, please refer to the [appropriate section](#pipeline).
+
+**AI Pipeline:** You can then try and load those mappings to generate questions to train the model. This uses a "seq-to-seq" transformer AI which utilizes attention to turn a **context paragraph** (i.e. an *answer*, in our case) with a specific **highlighted term** within (using `<hl>` tags) into a number of context-relevant questions. The questions generator script can be found [**here**](src/question_generator.py) and should be run AFTER the data pipeline. It can be used to load all `terms.json` files to produce a massive `train.csv` file as output (under `data/`), with all pairs of user questions (as generated for each **context**) and bot answers (the **term** associated with each question). It can then be fed to the LLM for fine-tuning (read further down below).
+
+---
+
+Speaking of which, to train and run the LLM itself, you need access to a repo in a [*Hugging Face*](https://huggingface.co/) account of your own. You can decide to attempt **fine-tuning** it [*locally*](#fine-tuning-the-model-locally) if you have enough RAM and a decent GPU, or you can try and see for [*online*](#fine-tuning-the-model-online) options (which may sometimes require payment).
+
+### Fine-Tuning the Model Locally
+
+If you wish to train the model **locally** on your own hardware, make sure you are using **Mac** or **Linux** and have [Anaconda](https://anaconda.org/) installed. If you are running **Windows**, you cannot train the model directly within the OS but you can run **WSL** and it should let you proceed. WSL-specific instructions to install Anaconda can be found [here](https://gist.github.com/kauffmanes/5e74916617f9993bc3479f401dfec7da). Be careful, you better have a capable GPU (an **Nvidia** graphics card is ideal for compatibility), with enough VRAM and RAM! (the CLI will give you feedback about these)
+
+Once Anaconda is installed and the `conda` command can be used in your terminal, follow [**this tutorial**](https://github.com/huggingface/autotrain-advanced) (run the **second codeblock** worth of (conda-specific) commands from the README file). You should now have a Conda environment for AutoTrain with all the necessary dependencies installed.
+
+> If you had Torch already and are experiencing issues with GPU recognition, you may want to make sure your GPU is properly recognized by PyTorch. Open any Python shell (or script), then `import torch`, and finally display the result of `torch.cuda.is_available()`. It should return `True`. If that is not the case, uninstall Torch using either `pip` or `conda` and then reinstall it cleanly (penultimate command listed in the tutorial linked above).
+
+Also, make sure you generate a *Hugging Face* **token** with WRITE access. You can now finally initiate the training process. Navigate to a **directory** where the `train.csv` file is stored, and run the following command in your terminal: (the section inside square brackets `[]` is optional, you can try with and without depending on how well it works for you--you should generally feel free to tweak and play around with most parameters depending on what works best for your needs!)
+
+```bash
+autotrain llm --train --project-name <project_name_here> --model bigscience/bloom-1b1 --data-path . --use-peft --train-batch-size 12 [--trainer sft --push-to-hub] --repo-id <repository_id_here> --token <hf_write_token_there>
+```
+
+> The file located at [`data/formatted_data.csv`](data/formatted_data.csv) is an example of a valid `train.csv` format-wise (and can be used for basic fine-tuning without even running the data pipeline), but its bot answers are complete sentences whereas the proposed solution here is to only have terms, as described above.
+
+The trained model should then appear in the *Hugging Face* repo you specified. No need to create a repo manually online prior to each attempt, just change the repo ID and project name every time in the command line and the repo will be created automatically on *Hugging Face*!
+
+### Fine-Tuning the Model Online
+
+You can use [this](todo) link to a **Google Colab** Jupyter Notebook which you can use to train an LLM of your choice. You can keep the basic one as used in the demo if you just want to test the chatbot somewhat quickly!
+
+Answer times may however be rather slow (~2mins per prompt).
+
+> Google provides you with T4 hardware but it may be a limiting factor RAM-wise when attempting to run any of the larger models that may be more appropriate for French. You would then have to pay, so it would be recommended to just attempt doing it [locally](#fine-tuning-the-model-locally) instead, if you really want to get a final model.
 
 ## Conception & Sources
 

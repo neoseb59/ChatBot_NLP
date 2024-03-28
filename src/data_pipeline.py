@@ -27,7 +27,7 @@ class DataPipeline:
         print("Loading XML files from", self.data_folder)
         output_data = []
         files = os.listdir(self.data_folder)
-        for filename in tqdm(files, total=len(files)):
+        for filename in tqdm(files, total=len(files), miniters=1):
             if filename.endswith(".xml"):
                 file_path = self.data_folder / filename
                 loader = XMLLoader(file_path)
@@ -97,7 +97,7 @@ class DataPipeline:
                 if tfidf > tfidf_threshold:
                     final_terms[response].append(term)
 
-        if False:  # make this True to also include NamedEntities (results might not always be accurate, especially on the fast model!)
+        if True:  # use this to turn Named Entities on and off (results might not always be accurate, especially on the fast model!)
             ne_analyzer = NamedEntitiesAnalyzer(tagger.docs)
             ne_result = ne_analyzer.run()
             named_entities = ne_result['entities']
@@ -105,7 +105,7 @@ class DataPipeline:
             assert set(tfidf_result.keys()) == set(tagger.responses)  # same responses
             for response in tagger.responses:
                 for entity, label in named_entities.items():
-                    if entity in response and label == "ORG":
+                    if entity in response and entity not in final_terms[response] and label == "ORG":  # only keep organizations as relevant entities
                         final_terms[response].append(entity)
 
         with open(self.terms_output_path, 'w', encoding='utf-8') as output_file:
