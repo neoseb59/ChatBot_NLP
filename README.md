@@ -4,6 +4,14 @@
 
 This repository is for our team's final project of IMT Atlantique's Natural Language Processing and Text Mining course taught by Yannis Haralambous and Gábor Bella.
 
+**Group Members:**
+
+- Thaïs ARCHAUD
+- Mathilde BERGER
+- Sébastien DANCOISNE
+- Yanice MOREAU
+- Maxime PRADILLON
+
 ## Setup and Usage
 
 > You will need to install all the dependencies detailed in `requirements.txt` using either `pip` or `conda`. If running `pip install -r requirements.txt` does not work, run `pip install` manually with each library in the list (omiting the version may help you avoid some issues for some reason). The `--user` option may be added if elevated privileges are required (typically when access rights are denied when pip attempts to install the wheels after downloading them).
