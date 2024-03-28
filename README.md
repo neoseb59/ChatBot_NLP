@@ -48,7 +48,7 @@ The trained model should then appear in the *Hugging Face* repo you specified. N
 
 ### Fine-Tuning the Model Online
 
-You can use [this](todo) link to a **Google Colab** Jupyter Notebook which you can use to train an LLM of your choice. You can keep the basic one as used in the demo if you just want to test the chatbot somewhat quickly!
+You can use [this](https://colab.research.google.com/drive/1oV5wBvlWburCDaapuBIqgCFfk6x7g_xw?usp=share_link) link to a **Google Colab** Jupyter Notebook which you can use to train an LLM of your choice. You can keep the basic one as used in the demo if you just want to test the chatbot somewhat quickly!
 
 Answer times may however be rather slow (~2mins per prompt).
 
@@ -160,7 +160,7 @@ Whenever a new token causes the automaton to become either **successful** or **f
 
 Here is the code we used to fine tune our model on [Google Colab](https://colab.research.google.com/drive/1oV5wBvlWburCDaapuBIqgCFfk6x7g_xw?usp=sharing).
 
-To test out the model we fine tuned, check out [this Google Colab file](https://colab.research.google.com/drive/1k7CeuOamS70afdFUayrSA-hA10eAmLrP?usp=sharing).
+To test out the model we fine tuned, check out [this Google Colab file](https://colab.research.google.com/drive/1k7CeuOamS70afdFUayrSA-hA10eAmLrP?usp=share_link).
 
 ## Project Requirements
 
