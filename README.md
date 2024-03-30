@@ -66,7 +66,7 @@ Answer times may however be rather slow (~2mins per prompt).
 ## TO DO
 
 - [x] XML File Parser
-- [ ] Data Pipeline
+- [x] Data Pipeline
   - [x] XML Loader
   - [x] XML Q&A Parser
   - [x] Anaphoria Resolution
@@ -94,7 +94,7 @@ graph TD
         K -- "List[Dict[str, str]]" --> F("Termhood Analyzer")
         
         subgraph "Term Analysis"
-            F -- "Set[str] --> G("TF-IDF Analyzer")
+            F -- "Set[str]" --> G("TF-IDF Analyzer")
         end
 
         K -- "List[Dict[str, str]]" --> E("Named Entities Analyzer")
