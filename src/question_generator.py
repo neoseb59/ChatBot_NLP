@@ -40,22 +40,29 @@ for theme in themes:
             if not search.match(context):
                 continue
             highlighted_context = search.sub(r"<hl>\1<hl>", highlighted_context)
-            for subcontext in highlighted_context.split(". "):  # HACK: Sequence length is too long otherwise, so we split paragraphs into sentences (which are less interesting as contexts); we should change models or not use pre-trained ones if we want to use a custom max length! (or maybe use a better splitting strategy?)
-                if len(subcontext) == 0:
-                    continue
+            sentences = highlighted_context.split(". ")
+            retained_number_of_sentences = len(sentences)
+            success = False
+            # HACK: Shorten the context paragraph, otherwise the model is not happy with some (one, actually) of the longer responses given as input (max length exceeded)
+            while not success and retained_number_of_sentences > 0:
+                subcontext = ". ".join(sentences[:retained_number_of_sentences])
                 subcontext += '.'
-                inputs = loaded_tokenizer(subcontext, return_tensors='pt')
-                out = loaded_model.generate(
-                    input_ids=inputs.input_ids,
-                    attention_mask=inputs.attention_mask,
-                    num_beams=16,
-                    num_return_sequences=16,
-                    length_penalty=10,
-                )
-                for question in out:
-                    question_string = loaded_tokenizer.decode(question, skip_special_tokens=True)
-                    question_string = no_space_question.sub(r"\1 ?", question_string)
-                    trainset += f"\"###Human:\\n{question_string}\\n\\n###Assistant:\\n{term}\"\n"
+                try:
+                    inputs = loaded_tokenizer(subcontext, return_tensors='pt')
+                    out = loaded_model.generate(
+                        input_ids=inputs.input_ids,
+                        attention_mask=inputs.attention_mask,
+                        num_beams=16,
+                        num_return_sequences=16,
+                        length_penalty=10,
+                    )
+                    for question in out:
+                        question_string = loaded_tokenizer.decode(question, skip_special_tokens=True)
+                        question_string = no_space_question.sub(r"\1 ?", question_string)
+                        trainset += f"\"###Human:\\n{question_string}\\n\\n###Assistant:\\n{term}\"\n"
+                    success = True
+                except:
+                    retained_number_of_sentences -= 1
 
 if output_path.is_file():
     os.remove(output_path)
