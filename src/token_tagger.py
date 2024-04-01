@@ -33,12 +33,12 @@ class TokenTagger:
         return curated_string
 
     def run(self):
-        print("Tagging questions in corpus...")
+        print("[Token Tagger] Tagging questions in corpus...")
         for i, doc in tqdm(enumerate(self.nlp.pipe(self.questions)), total=len(self.questions), miniters=1):
             self.docs['question'].append(doc)
             for token in doc:
                 self.tagged_corpus[i]['question'].append(token)
-        print("Tagging responses in corpus...")
+        print("[Token Tagger] Tagging responses in corpus...")
         for i, doc in tqdm(enumerate(self.nlp.pipe(self.responses)), total=len(self.responses), miniters=1):
             self.docs['response'].append(doc)
             for token in doc:

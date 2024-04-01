@@ -24,12 +24,12 @@ class TermhoodAnalyzer:
 
     def _check_bad_word(self, word: str) -> bool:
         for regex in self.bad_words_regex:
-            if regex.match(word):
+            if regex.search(word):
                 return True
         return False
 
     def get_full_term(self, lemma: str) -> str:
-        return self.term_lemma_mappings[lemma].text
+        return self.term_lemma_mappings[lemma]
 
     def find_term_candidates(self):
         detector = CandidateAutomaton()
@@ -44,7 +44,7 @@ class TermhoodAnalyzer:
                 if detector.result is not None:
                     if detector.result is True:
                         new_candidate = TermCandidate(detector.buffer)
-                        self.term_lemma_mappings[new_candidate.lemma] = new_candidate
+                        self.term_lemma_mappings[new_candidate.lemma] = new_candidate.text
                         self.candidate_lemmas.append(new_candidate.lemma)
                         self.candidate_lemmas_set.add(new_candidate.lemma)
                     detector.reset()
@@ -74,7 +74,7 @@ class TermhoodAnalyzer:
                 self.c_values[full_a] *= self.term_frequencies[a]
 
     def run(self) -> dict[str, float]:
-        print("Searching for terms...")
+        print("[Termhood Analyzer] Searching for terms...")
         self.find_term_candidates()
         self.calculate_frequencies()
         self.work_out_super_terms()

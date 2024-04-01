@@ -26,9 +26,9 @@ trainset = "text\n"
 # Je peux, à compter de la 1re consultation médicale de grossesse et au plus tard avant la fin du 5e mois de grossesse déclarer une sage-femme référente. Cette sage-femme m'accompagne de la grossesse à la maternité. Cette déclaration se fait auprès de l'Assurance maladie et reste valable 14 semaines après l'accouchement.
 # """
 
-no_space_question = re.compile(r"([a-zA-Z0-9€%])\?$")
 special_regex_chars = re.compile(r"([\.\?\+\*\(\)\[\]\{\}\\])")
 themes = [theme for theme in os.listdir(input_folder) if os.path.isdir(input_folder / theme)]
+print("Please ignore any warning messages about sequence length. In such cases, a new attempt will automatically be made with shorter paragraphs.")
 for theme in themes:
     print("Generating train data for theme '", theme, "'...", sep='')
     with open(input_folder / theme / "terms.json", 'r', encoding='utf-8') as file:
@@ -37,7 +37,7 @@ for theme in themes:
         for term in terms:
             highlighted_context = context
             search = re.compile('(' + special_regex_chars.sub(r"\___\1", term).replace('___', '') + ')', re.IGNORECASE)
-            if not search.match(context):
+            if not search.search(context):
                 continue
             highlighted_context = search.sub(r"<hl>\1<hl>", highlighted_context)
             sentences = highlighted_context.split(". ")
@@ -58,8 +58,18 @@ for theme in themes:
                     )
                     for question in out:
                         question_string = loaded_tokenizer.decode(question, skip_special_tokens=True)
-                        question_string = no_space_question.sub(r"\1 ?", question_string)
-                        trainset += f"\"###Human:\\n{question_string}\\n\\n###Assistant:\\n{term}\"\n"
+                        question_string = question_string.strip()
+                        if not question_string.endswith("?"):
+                            question_string += " ?"
+                        elif not question_string.endswith(" ?"):
+                            question_string = question_string[:-1].strip()
+                            question_string += " ?"
+                        question_string = question_string.replace("+?", "?")
+                        question_string = question_string.replace("- ", "-")
+                        question_string = question_string.replace(" -", "-")
+                        question_string = question_string.replace(" '", "'")
+                        newline = f"\"###Human:\\n{question_string}\\n\\n###Assistant:\\n{term}\"\n"
+                        trainset += newline
                     success = True
                 except:
                     retained_number_of_sentences -= 1
@@ -68,4 +78,4 @@ if output_path.is_file():
     os.remove(output_path)
 with open(output_path, 'w', encoding='utf-8') as file:
     file.write(trainset)
-print("All concatenated train data has been saved in the trainset file under data/train.csv.")
+print("\nAll concatenated train data has been saved in the trainset file under data/train.csv.")

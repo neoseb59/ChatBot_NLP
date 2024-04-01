@@ -18,11 +18,15 @@ This repository is for our team's final project of IMT Atlantique's Natural Lang
 >
 > **Regarding the two `fr` models** (as listed near the start of the requirements file), they are submodels for spaCy--not standalone libraries. The correct command to download them individually (after spaCy) is: `python -m spacy download <model_name>` (with `<model_name>` being the name of the model (before the `@` character), with hyphens `-` replaced with underscores `_`--so for example, `fr-core-news-sm` would become `fr_core_news_sm`). Depending on the system/OS you are running, you may need to use `python3` and `pip3` instead of `python` and `pip`.
 
+### Where to Start
+
+The source corpus is located under `data/themes/`, as raw XML filed extracted from the French [Service-Public.fr](https://www.service-public.fr/) website. You should not have to worry about it.
+
 **Data Pipeline:** To parse XML files and generate outputs (parsed questions/answers under `data/results/<Topic>/output.json`), and then extract relevant terms for each answer (answer to list of terms mappings under `data/results/<Topic>/terms.json`), please run the [**`data_pipeline.py`**](src/data_pipeline.py) Python script. As mentioned, run either `python` or `python3` (depending on your particular case), followed by `src/data_pipeline.py` to achieve this and run the data generating pipeline. In summary, XML files from `data/themes` will be parsed, and the associated outputs will be placed under `data/results`. This may take a while, but there are `tqdm` progress bars along with console logging to keep track of progress.
 
-> For a better understanding of the pipelines, please refer to the [appropriate section](#pipeline).
+> **There is a `fast` option you can turn on and off depending on the expected quality of results** (check the end of the pipeline script), as well as an option to turn *Named Entities Analysis* on and off. For a better understanding of the pipelines, please refer to the [appropriate section](#pipeline).
 
-**AI Pipeline:** You can then try and load those mappings to generate questions to train the model. This uses a "seq-to-seq" transformer AI which utilizes attention to turn a **context paragraph** (i.e. an *answer*, in our case) with a specific **highlighted term** within (using `<hl>` tags) into a number of context-relevant questions. The questions generator script can be found [**here**](src/question_generator.py) and should be run AFTER the data pipeline. It can be used to load all `terms.json` files to produce a massive `train.csv` file as output (under `data/`), with all pairs of user questions (as generated for each **context**) and bot answers (the **term** associated with each question). It can then be fed to the LLM for fine-tuning (read further down below).
+**AI Pipeline:** You can then try and load those mappings to generate questions to train the model. This uses a "seq-to-seq" transformer AI which utilizes *attention* to turn a **context paragraph** (i.e. an *answer*, in our case) with a specific **highlighted term** within (using `<hl>` tags) into a number of context-relevant **questions**; these questions make up the trainset (their respective bot answers are just the associated **term**). To achieve this, please run the [**`question_generator.py`**](src/question_generator.py) Python script, but only *AFTER* the data pipeline. It can be used to load all `terms.json` files to produce a massive `train.csv` file as output (under `data/`), with all pairs of user questions (as generated for each **context**) and bot answers (the **term** associated with each question). It can then be fed to the LLM for fine-tuning (read further down below).
 
 ---
 
@@ -88,7 +92,7 @@ graph TD
     B -- "XML Files\nOrganized by Theme" --> C("XML Loader")
     
     subgraph "Data Pipeline by Theme"
-    C -- "Structured Data" --> D("XML Question/Answer Parser")
+    C -- "Structured Data\n(JSON)" --> D("XML Question/Answer Parser")
         D -- "List[Dict[str, str]]" --> T("Token Tagger")
         T -- "List[Dict[str, str]]" --> K("Anaphora Resolution\n(skipped in practice)")
         K -- "List[Dict[str, str]]" --> F("Termhood Analyzer")
@@ -97,10 +101,10 @@ graph TD
             F -- "Set[str]" --> G("TF-IDF Analyzer")
         end
 
-        K -- "List[Dict[str, str]]" --> E("Named Entities Analyzer")
-        E -- "NEs per Answer" --> H("Question Generator")
+        K -- "List[Dict[str, str]]" --> E("Named Entities Analyzer\n(optional)")
+        E -- "NEs per Answer\n(filtered via TF-IDF)" --> H("Question Generator")
         G -- "Terms per Answer" --> H
-        D --> I
+        D -- "Original Corpus" --> I
     end
 
     H -- "Processed Questions\n(JSON)" --> I("Mistral Model Fine-Tuning")

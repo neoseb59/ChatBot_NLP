@@ -11,7 +11,7 @@ class NamedEntitiesAnalyzer:
         self.stop_words = STOP_WORDS
 
     def run(self) -> dict[str, dict[str, str]]:
-        print("Computing named entities and lemmas...")
+        print("[Named Entities Analyzer] Computing named entities and lemmas...")
         named_entities = {}
         lemmas_freq = {}
         all_docs = self.docs['question'] + self.docs['response']
